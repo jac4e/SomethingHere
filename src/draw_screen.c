@@ -1,17 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define GLFW_INCLUDE_NONE // prevent OpenGL include conflicts with GLAD
-
+//#include "../lib/glad/glad.h"
+#include <GL/glew.h>
+#include <GL/glut.h>
 #include <GLFW/glfw3.h>
-#include "../lib/glad/glad.h"
 
-int create_screen()
+static char *test_argv = "test_name";
+static int test_argc = 1;
+
+int init_screen(int dims[2])
 {
+	GLenum err;
+
+	glutInitWindowPosition(0, 0);
+	glutInitWindowSize(1920, 1080);
+	glutInit(&test_argc, &test_argv);
+	glutCreateWindow("GLEW Test");
+
+	err = glewInit();
+	if(err != GLEW_OK){
+		printf("errorrrr\n");
+		return -1;
+	}
 	return 0;
 }
 
-int draw_screen(char **tiles, int dims[2])
+int update_screen(char **tiles, int dims[2])
 {
 	return 0;
 }
