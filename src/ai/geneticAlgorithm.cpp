@@ -4,12 +4,12 @@ void assignProbabilities(std::vector<Agent> &population) {
     // First sum all fitness values
     int fitnessSum = NULL;
     for (int i = 0; i < population.size(); i++) {
-        fitnessSum += population[i].fitness;
+        fitnessSum += population[i].energyUsed;
     }
     // Then calculate probability for each agent
     float probSum = NULL;
     for (int i = 0; i < population.size(); i++) {
-        probSum += (float)population[i].fitness / (float)fitnessSum;
+        probSum += (float)population[i].energyUsed / (float)fitnessSum;
         population[i].selectionProbability = probSum;
         // printf("prob: %f\n", population[i].selectionProbability);
     }
@@ -23,50 +23,50 @@ int selectParent(std::vector<Agent> &population) {
             return i;
         }
     }
-}
-;
-void mutate(Agent &agent) {;
-    // Mutate Personality;
-    float agg = agent.agg + ( (float)rand() / (float)RAND_MAX )/10;
-    float picky = agent.picky + ( (float)rand() / (float)RAND_MAX )/10;
+};
+void mutate(Agent &agent) {
+    ;
+    // Mutate Movement Weights;
+    std::vector<float> moveWeights;
+    for (int i = 0; i < agent.moveWeights.size(); i++) {
+        float lMax = agent.moveWeights[i];
+        float rMax = 1 - agent.moveWeights[i];
+        float shift = (nRand() * (lMax + rMax) - lMax) / 10;
+        moveWeights.push_back(agent.moveWeights[i] + shift);
+    }
 
     // Mutate Physical
-    // Calculate the max left and right shift of cutoff point a and b
+    // Calculate the max cutoff shift
     float aMax[2] = {agent.stge, agent.str};
-    float bMax[2] = {agent.str, agent.agi};
-    // Calculate two normalized random numbers
+    // Calculate normalized random numbers
     float arand = (float)rand() / (float)RAND_MAX;
-    float brand = (float)rand() / (float)RAND_MAX;
     // Calculate cuttoff point shift value
     float aShift = (arand * (aMax[0] + aMax[1]) - aMax[0]) / 10;
-    float bShift = (brand * (bMax[0] + bMax[1]) - bMax[0]) / 10;
     float stge = agent.stge + aShift;
-    float str = agent.str - aShift + bShift;
-    float agi = agent.agi - bShift;
-    agent.setProperties(agg, picky, stge, str, agi);
+    float str = agent.str - aShift;
+    agent.setProperties(moveWeights, stge, str);
 }
 
-Agent breed(Agent &parentA, Agent &parentB, float crossover) {
-    // Breeds a child of two parents from crossover point
-    // Cross over point is from 0 to 1
+Agent breed(Agent &parentA, Agent &parentB, float w) {
+    // Breeds a child of two parents
+    // Child properties are determined by a weight
+    // Should modify this after first initial simulations if improper converging occurs
     Agent child;
+
+    std::vector<float> moveWeights;
+    for (int i = 0; i < parentA.moveWeights.size(); i++) {
+        moveWeights.push_back(parentA.moveWeights[i] * w + parentB.moveWeights[i] * (1 - w));
+    }
+
     child.setProperties(
-        parentA.agg * crossover + parentB.agg * (1 - crossover),
-        parentA.picky * crossover + parentB.picky * (1 - crossover),
-        parentA.stge * crossover + parentB.stge * (1 - crossover),
-        parentA.str * crossover + parentB.str * (1 - crossover),
-        parentA.agi * crossover + parentB.agi * (1 - crossover));
+        moveWeights,
+        parentA.stge * w + parentB.stge * (1 - w),
+        parentA.str * w + parentB.str * (1 - w));
     mutate(child);
-    printf("stge - %f | str - %f | agi - %f\n", child.stge, child.str, child.agi);
-    printf("Tot: %f\n", child.stge + child.str + child.agi);
     return child;
 }
 
 void reproducePopulation(std::vector<Agent> &population) {
-    //calculate fitness
-    for (int i = 0; i < population.size(); i++) {
-        population[i].calculateFitness();
-    }
     // Assign probabilities
     assignProbabilities(population);
 
@@ -102,9 +102,9 @@ void reproducePopulation(std::vector<Agent> &population) {
         matingPop.erase(matingPop.begin() + b);
 
         // Breed Children and add to population
-        float crossover = (float)rand() / (float)RAND_MAX;
-        population.push_back(breed(parentA, parentB, crossover));
-        population.push_back(breed(parentB, parentA, 1 - crossover));
+        float w = (float)rand() / (float)RAND_MAX;
+        population.push_back(breed(parentA, parentB, w));
+        population.push_back(breed(parentB, parentA, 1 - w));
 
         // Add parents back to population
         population.push_back(parentA);
