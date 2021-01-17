@@ -12,10 +12,11 @@ int xSize;
 int ySize;
 int minEnergy; // <= 0
 int maxEnergy; // >= 10
+extern unsigned char *map;
 std::random_device rd;
 std::mt19937 mersenne(rd());
 
-void print(unsigned char *map)
+void print()
 {
 	// in the map, 0 = nothing, 1 = agent, 2 = wall, 155-255 = energy cells containing 1-100 energy
 	for (int i = 0; i < xSize; ++i)
@@ -41,7 +42,7 @@ void print(unsigned char *map)
 	cout << "+\n";
 }
 
-void placeWall(unsigned char *map, int y, int x)
+void placeWall(int y, int x)
 {
 	if (x >= 0 && x < xSize && y >= 0 && y < ySize)
 	{
@@ -71,7 +72,7 @@ void placeWall(unsigned char *map, int y, int x)
 	}
 }
 
-void commitWall(unsigned char *map, int xMin, int xL, int yMin, int yL)
+void commitWall(int xMin, int xL, int yMin, int yL)
 {
 	for (int i = 0; i < xL; ++i)
 		for (int j = 0; j < yL; ++j)
@@ -79,7 +80,7 @@ void commitWall(unsigned char *map, int xMin, int xL, int yMin, int yL)
 				map[(yMin + j) * xSize + (xMin + i)] = 2;
 }
 
-void generateWalls(unsigned char *map)
+void generateWalls()
 {
 	//shapes: | L + [] () .
 	/*
@@ -106,13 +107,13 @@ void generateWalls(unsigned char *map)
 				unsigned char currentShape = mersenne();
 				if (currentShape <= 51) //single wall
 				{
-					placeWall(map, y, x);
-					commitWall(map, x, 1, y, 1);
+					placeWall(y, x);
+					commitWall(x, 1, y, 1);
 					//cout << ".\n";
 				}
 				else if (currentShape <= 211) // line 
 				{
-					placeWall(map, y, x);
+					placeWall( y, x);
 					bool horizontal = currentShape % 2 == 0;
 					unsigned char length = 76 % 4;
 					if (length == 0)
@@ -121,16 +122,16 @@ void generateWalls(unsigned char *map)
 					{
 						for (int i = 1; i <= length; ++i)
 						{
-							placeWall(map, y, x + i);
-							placeWall(map, y, x - i);
+							placeWall( y, x + i);
+							placeWall( y, x - i);
 						}
 					}
 					else
 					{
 						for (int i = 1; i <= length; ++i)
 						{
-							placeWall(map, y + i, x);
-							placeWall(map, y - i, x);
+							placeWall( y + i, x);
+							placeWall( y - i, x);
 						}
 					}
 					horizontal = !horizontal; //because the second piece, if applicable, is the opposite orientation
@@ -142,17 +143,17 @@ void generateWalls(unsigned char *map)
 						if (horizontal)
 						{
 							for (int i = 1; i <= topL; ++i)
-								placeWall(map, y + position, x + i);
+								placeWall( y + position, x + i);
 							for (int i = 1; i <= botL; ++i)
-								placeWall(map, y + position, x - i);
+								placeWall( y + position, x - i);
 
 						}
 						else
 						{
 							for (int i = 1; i <= topL; ++i)
-								placeWall(map, y + i, x + position);
+								placeWall( y + i, x + position);
 							for (int i = 1; i <= botL; ++i)
-								placeWall(map, y - i, x + position);
+								placeWall( y - i, x + position);
 
 						}
 						//cout << "+\n";
@@ -167,9 +168,9 @@ void generateWalls(unsigned char *map)
 							for (int i = 1; i <= newL; ++i)
 							{
 								if (right)
-									placeWall(map, top ? y + length : y - length, x + i);
+									placeWall( top ? y + length : y - length, x + i);
 								else
-									placeWall(map, top ? y + length : y - length, x - i);
+									placeWall( top ? y + length : y - length, x - i);
 							}
 						}
 						else
@@ -177,9 +178,9 @@ void generateWalls(unsigned char *map)
 							for (int i = 1; i <= newL; ++i)
 							{
 								if (right)
-									placeWall(map, y + i, top ? x + length : x - length);
+									placeWall( y + i, top ? x + length : x - length);
 								else
-									placeWall(map, y - i, top ? x + length : x - length);
+									placeWall( y - i, top ? x + length : x - length);
 							}
 						}
 						//cout << "L\n";
@@ -194,7 +195,7 @@ void generateWalls(unsigned char *map)
 					unsigned char startY = y - (height / 2);
 					for (int iy = 0; iy < height; ++iy)
 						for (int ix = 0; ix < length; ++ix)
-							placeWall(map, startY + iy, startX + ix);
+							placeWall( startY + iy, startX + ix);
 					//cout << "[]\n";
 				}
 				else if (currentShape <= 255) // <>
@@ -204,10 +205,10 @@ void generateWalls(unsigned char *map)
 					unsigned char startY = y - radius;
 					for (int iy = 0; iy <= radius * 2; ++iy)
 						for (int ix = abs(radius - iy); ix <= radius * 2 - abs(radius - iy); ++ix)
-								placeWall(map, startY + iy, startX + ix);
+								placeWall( startY + iy, startX + ix);
 					//cout << "<>\n";
 				}
-				commitWall(map, 0, xSize, 0, ySize);
+				commitWall( 0, xSize, 0, ySize);
 				//print(map);
 				//cout << "\n\n\n\n";
 			}
@@ -215,7 +216,7 @@ void generateWalls(unsigned char *map)
 	}
 }
 
-void generateEcells(unsigned char *map)
+void generateEcells()
 {
 	for (int i = 0; i < xSize * ySize; ++i)
 		if (mersenne() % 10000 < dEnergy && map[i] != 2)
@@ -224,7 +225,7 @@ void generateEcells(unsigned char *map)
 		}
 }
 
-void placeActors(unsigned char *map, std::vector<Agent> agent)
+void placeActors(std::vector<Agent> agent)
 {
 	int x;
 	int y;
@@ -239,7 +240,7 @@ void placeActors(unsigned char *map, std::vector<Agent> agent)
 	}
 }
 
-unsigned char *generateMap(int wallDensity, int energyDensity, int numberActors, int xSize, int ySize, int energyMin, int energyMax, std::vector<Agent> agents)
+void generateMap(int wallDensity, int energyDensity, int numberActors, int xSize, int ySize, int energyMin, int energyMax, std::vector<Agent> agents)
 {
 	// mersenne() = random number
 
@@ -259,16 +260,16 @@ unsigned char *generateMap(int wallDensity, int energyDensity, int numberActors,
 	int minEnergy = 1; // <= 0
 	int maxEnergy = 9; // >= 10
 
-	unsigned char *map{ new unsigned char[ySize*xSize] {} };
+	map{ new unsigned char[ySize*xSize] {} };
 
-	generateWalls(map);
-	generateEcells(map);
-	placeActors(map, agents);
+	generateWalls();
+	generateEcells();
+	placeActors(agents);
 
-	print(map);
-	return map;
+	//print(map);
 }
 
+/*
 int main()
 {
 	while (true)
@@ -279,3 +280,4 @@ int main()
 
 	return 0;
 }
+*/
