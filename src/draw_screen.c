@@ -1,10 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <GL/glew.h>
+// #include <GL/glew.h>
 #include <GL/glut.h>
-#include <GL/freeglut_ext.h>
-#include <GLFW/glfw3.h>
+// #include <GL/freeglut_ext.h>
+// #include <GLFW/glfw3.h>
 
 static char *test_argv = "test_name";
 static int test_argc = 1;
@@ -54,12 +54,12 @@ int init_screen(int dims[2])
 	glutFullScreen();
 
 	// openGL extension wrangler library
-	err = glewInit();
-	if(err != GLEW_OK){
-		printf("errorrrr\n");
-		return -1;
-	}
-	printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+//	err = glewInit();
+//	if(err != GLEW_OK){
+		//printf("errorrrr\n");
+			//return -1;
+	//}
+	//printf("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
 	// set glut callbacks
 	glutDisplayFuncUcall(&display_callback, NULL);
