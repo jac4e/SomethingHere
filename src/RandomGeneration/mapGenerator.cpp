@@ -240,7 +240,7 @@ void placeActors(std::vector<Agent> agent)
 	}
 }
 
-void generateMap(int wallDensity, int energyDensity, int numberActors, int xSize, int ySize, int energyMin, int energyMax, std::vector<Agent> agents)
+void generateMap(int wallDensity, int energyDensity, int numberActors, int sizeX, int sizeY, int energyMin, int energyMax, std::vector<Agent> agents)
 {
 	// mersenne() = random number
 
@@ -252,13 +252,13 @@ void generateMap(int wallDensity, int energyDensity, int numberActors, int xSize
 
 	// in the map, 0 = nothing, 1 = agent, 2 = wall, 156-255 = energy cells containing 1-100 energy
 
-	int dWall = 100;
-	int dEnergy = 1000;
-	int nActors = 0;
-	int xSize = 80;
-	int ySize = 60;
-	int minEnergy = 1; // <= 0
-	int maxEnergy = 9; // >= 10
+	dWall = wallDensity;
+	dEnergy = energyDensity;
+	nActors = numberActors;
+	xSize = sizeX;
+	ySize = sizeY;
+	minEnergy = energyMin; // <= 0
+	maxEnergy = energyMax; // >= 10
 
 	map = new unsigned char[ySize*xSize];
 
