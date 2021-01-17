@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <iostream>
 #include <random>
-#include "ai.hpp"
+#include "../ai/ai.hpp"
 using std::cout;
 
 // density out of 10'000 in both following cases
