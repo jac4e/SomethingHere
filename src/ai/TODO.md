@@ -4,11 +4,11 @@
 
 [] function to reset agents timeline and energy used
 
-[] function that kills off a portion of the population
+[x] function that kills off a portion of the population
 
-[] function to pair agents off for breeding
+[x] function to pair agents off for breeding
 
-[] function for breeding that generates 2 child agents from 2 parents
+[x] function for breeding that generates 2 child agents from 2 parents
 
 [] function to get it's surroundings
 
