@@ -18,3 +18,8 @@ class Agent{
 
 std::vector<Agent> generateAgent(int,int);
 
+void assignProbabilities(std::vector<Agent> &population);
+int selectParent(std::vector<Agent> &population);
+void mutate(Agent &agent);
+Agent breed(Agent &parentA, Agent &parentB, float crossover);
+void reproducePopulation(std::vector<Agent> &population);
