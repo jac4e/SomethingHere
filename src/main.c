@@ -3,13 +3,12 @@
 #include "draw_screen.h"
 #include "tick_code.h"
 
-// testing
-int dims[2] = {50, 20};
-
 int main(){
 	struct display_data dat;
 	struct tick_vars tick;
 
+	// testing
+	int dims[2] = {50, 20};
 	char grid[dims[0] * dims[1]];
 
 	// sets some defaults for screen state required
