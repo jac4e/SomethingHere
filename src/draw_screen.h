@@ -8,11 +8,19 @@ extern "C"{
 #endif
 #endif
 
-int init_screen(int dims[2]);
-int update_screen(char **tiles, int dims[2]);
+struct display_data
+{
+	int grid_size[2];
+	unsigned char *types;
+
+	float box_fracs[2];
+	float gap_fracs[2];
+};
+
+int init_screen(struct display_data *dat);
+int update_screen(struct display_data *dat);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif // DRAW_SCREEN_H
