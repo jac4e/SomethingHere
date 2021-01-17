@@ -11,19 +11,16 @@ extern "C"{
 struct display_data
 {
 	int grid_size[2];
-	char **types;
+	unsigned char *types;
 
 	float box_fracs[2];
 	float gap_fracs[2];
 };
 
 int init_screen(struct display_data *dat);
-int update_screen(char *tiles, int dims[2]);
-
-int compute_fracs(struct display_data *dat, float gap_pro);
+int update_screen(struct display_data *dat);
 
 #ifdef __cplusplus
 }
 #endif
-
 #endif // DRAW_SCREEN_H
