@@ -8,6 +8,14 @@
 #include "draw_screen.h"
 #include "textures.h"
 
+// when visual C allows compilation of strings longer than
+// size_t = UINT16_MAX, **as gcc does**, then images can be
+// compiled on vcc/windows
+//
+// defaulting to colored boxes for all platforms as a quick fix
+// until we can implement a (better) image loading system
+#define IMAGES_FIXED 0
+
 static char *test_argv = "test_name";
 static int test_argc = 1;
 
@@ -28,6 +36,9 @@ int init_gl(struct display_data *dat)
 	int tex_res[2] = {1024, 1024};
 	const void **texture_data;
 
+	glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
+
+#ifdef IMAGES_FIXED
 	textures = dat->textures;
 	n = dat->num_textures;
 
@@ -36,7 +47,6 @@ int init_gl(struct display_data *dat)
 	texture_data[1] = &wall_bytedata.pixel_data;
 	texture_data[2] = &energy_cell_bytedata.pixel_data;
 
-	glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
 
 	// generates set of new texture names
 	glGenTextures(n, textures);
@@ -47,6 +57,7 @@ int init_gl(struct display_data *dat)
 			GL_RGBA, GL_UNSIGNED_BYTE, texture_data[i]);
 		glBindTexture(GL_TEXTURE_2D, textures[i]);
 	}
+#endif
 
 	return 0;
 }
@@ -164,6 +175,7 @@ int tile_boxes(struct display_data *dat)
 		for(j = 0; j < dat->grid_size[0]; ++j){
 			set_color(dat, i, j);
 			switch(dat->types[i * dat->grid_size[0] + j]){
+#ifdef IMAGES_FIXED
 				case CT_NOTHING:
 					draw_box(pos, dat->box_fracs);
 					break;
@@ -180,6 +192,9 @@ int tile_boxes(struct display_data *dat)
 					draw_texture(pos, dat->box_fracs, 
 							CT_ENERGYCELL);
 			}
+#else
+			draw_box(pos, dat->box_fracs);
+#endif
 			pos[0] += inc[0];
 		}
 		pos[1] += inc[1];
