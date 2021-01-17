@@ -260,7 +260,7 @@ void generateMap(int wallDensity, int energyDensity, int numberActors, int xSize
 	int minEnergy = 1; // <= 0
 	int maxEnergy = 9; // >= 10
 
-	map{ new unsigned char[ySize*xSize] {} };
+	map = new unsigned char[ySize*xSize];
 
 	generateWalls();
 	generateEcells();
