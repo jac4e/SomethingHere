@@ -7,6 +7,8 @@ int main(){
 	//initialize
 	//run
 	init_screen(dims);
+	while(1)
+		update_screen(NULL, NULL);
 	//cleanup
 	return 0;
 }
