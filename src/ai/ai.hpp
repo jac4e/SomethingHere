@@ -1,4 +1,8 @@
 #pragma once
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
 #include <vector>
 
 struct Position {
@@ -6,17 +10,19 @@ struct Position {
     int y;
 };
 
-class Agent{
-    public:
-        Position pos;
-        float agg, picky;
-        int stge, str, agi;
-        Agent();
-        void setPos(int, int);
-        void setProperties(float,float,int,int,int);
+class Agent {
+   public:
+    Position pos;
+    float agg, picky, stge, str, agi;
+    int fitness;
+    float selectionProbability;
+    Agent();
+    void setPosition(int x, int y);
+    void setProperties(float agg, float picky, float stge, float str, float agi);
+    void calculateFitness();
 };
 
-std::vector<Agent> generateAgent(int,int);
+std::vector<Agent> generateAgents(int amt, int skillMax);
 
 void assignProbabilities(std::vector<Agent> &population);
 int selectParent(std::vector<Agent> &population);
