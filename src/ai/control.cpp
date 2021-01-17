@@ -1,5 +1,5 @@
-#include "ai.hpp"
 #include "../RandomGeneration/mapGenerator.h"
+#include "ai.hpp"
 
 bool operator==(const Position &left, const Position &right) {
     return left.x == right.x && left.y == right.y;
@@ -22,14 +22,16 @@ std::vector<int> getAdjacent(int rowsize, Agent &agent) {
         for (int j = 0; j < agent.radius * 2 + 1; j++) {
             int x = agent.pos.x + i - agent.radius;
             int y = agent.pos.x + j - agent.radius;
-            int index = (y * rowsize ) + x;
+            int index = (y * rowsize) + x;
             adjacent.push_back(map[index]);
         }
     }
     return adjacent;
 }
 
-void control(Agent &agent, int rowsize) {
+void control(Agent &agent, std::vector<Agent> &population, int rowsize) {
+    // check if energy is
+
     // Get adjacent tiles
     std::vector<int> adjacent = getAdjacent(rowsize, agent);
     std::vector<float> weightMap;
@@ -104,25 +106,82 @@ void control(Agent &agent, int rowsize) {
     // Choose direction
     // normalize weights
     float weightSum = upWeight + downWeight + leftWeight + rightWeight;
-    upWeight = upWeight/weightSum;
-    downWeight = downWeight/weightSum;
-    leftWeight = leftWeight/weightSum;
-    rightWeight = rightWeight/weightSum;
+    std::vector<float> directionWeights = {upWeight / weightSum, downWeight / weightSum, leftWeight / weightSum, rightWeight / weightSum};
 
     float r = nRand();
+    int index;
+
+    for (int i = 0; i < directionWeights.size(); i++) {
+        // printf("size: %d", population.size());
+        if (i == directionWeights.size() - 1 || (r > directionWeights[i] && r < directionWeights[i + 1])) {
+            index = i;
+        }
+    }
 
     // Check what is in that tile
-    // if wall
-    // do not move
-    // if agent
-    // do not move and steal it's energy
-    // if energy
-    // Add energy to energy storage
-    // delete energy from map
-    // move agent into that space
-    // consume some energy
-    // remove previous energy position
-}
+    Position targetPos;
+    int targetValue;
 
-// Some sort of pathing finding algorithm that takes target position and generate paths avoiding objects that are not the target
-// This is greatly simplified if it can only see the squares on it sides.
+    switch (index) {
+        case 0:
+            // Up
+            targetPos = {agent.pos.x, agent.pos.y + 1};
+            int targetIndex = (targetPos.y * rowsize) + targetPos.x;
+            targetValue = map[targetIndex];
+            break;
+        case 1:
+            // Down
+            targetPos = {agent.pos.x, agent.pos.y - 1};
+            int targetIndex = (targetPos.y * rowsize) + targetPos.x;
+            targetValue = map[targetIndex];
+            break;
+        case 2:
+            // Left
+            targetPos = {agent.pos.x - 1, agent.pos.y};
+            int targetIndex = (targetPos.y * rowsize) + targetPos.x;
+            targetValue = map[targetIndex];
+            break;
+        case 3:
+            // Right
+            targetPos = {agent.pos.x + 1, agent.pos.y};
+            int targetIndex = (targetPos.y * rowsize) + targetPos.x;
+            targetValue = map[targetIndex];
+            break;
+        default:
+            targetValue = 0;
+            targetPos = {0, 0};
+            break;
+    }
+
+    switch (targetValue) {
+        case 0:
+            // Empty
+            int oldIndex = (agent.pos.y * rowsize) + agent.pos.x;
+            int newIndex = (targetPos.y * rowsize) + targetPos.x;
+
+            map[oldIndex] = 0;
+            map[newIndex] = 1;
+
+            break;
+        case 1:
+            // Agent
+            // do not move and steal it's energy
+            Agent targetAgent = getAgent(population, targetPos);
+            targetAgent.stealEnergy(agent.str * 10);
+            break;
+        case 2:
+            // Wall
+            // do not move
+            break;
+
+        default:
+            // energy
+            int oldIndex = (agent.pos.y * rowsize) + agent.pos.x;
+            int newIndex = (targetPos.y * rowsize) + targetPos.x;
+            int energy = (map[newIndex] - 155);
+            agent.energyStorage += energy;
+            map[oldIndex] = 0;
+            map[newIndex] = 1;
+            break;
+    }
+}

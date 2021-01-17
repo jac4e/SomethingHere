@@ -1,4 +1,5 @@
 #include "ai.hpp"
+#include "../RandomGeneration/mapGenerator.h"
 
 Agent::Agent(){};
 
@@ -13,10 +14,17 @@ void Agent::setProperties(std::vector<float> w, float a, float b) {
     str = b;
     radius = 2;
     maxEnergy = 100 * stge;
+    energyStorage = maxEnergy/2;
 }
 
-void Agent::kill(){
+void Agent::stealEnergy(int amt){
+    energyStorage -= amt;
+}
+
+void Agent::kill(int rowsize){
     // kill agent when energy runs out or too much energy consumed
+    int index = (pos.y * rowsize) + pos.x;
+    map[index] = 0;
 }
 
 std::vector<Agent> generateAgents(int amt, int skillMax) {

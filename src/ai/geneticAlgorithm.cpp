@@ -2,12 +2,12 @@
 
 void assignProbabilities(std::vector<Agent> &population) {
     // First sum all fitness values
-    int fitnessSum = NULL;
+    int fitnessSum;
     for (int i = 0; i < population.size(); i++) {
         fitnessSum += population[i].energyUsed;
     }
     // Then calculate probability for each agent
-    float probSum = NULL;
+    float probSum;
     for (int i = 0; i < population.size(); i++) {
         probSum += (float)population[i].energyUsed / (float)fitnessSum;
         population[i].selectionProbability = probSum;

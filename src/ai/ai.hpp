@@ -19,12 +19,14 @@ class Agent {
     float stge, str;
     int radius;
     int energyUsed;
+    int energyStorage;
     int maxEnergy;
     float selectionProbability;
     Agent();
     void setPosition(int x, int y);
     void setProperties(std::vector<float> w, float stge, float str);
-    void kill();
+    void stealEnergy(int amt);
+    void kill(int rowsize);
 };
 
 float nRand();
