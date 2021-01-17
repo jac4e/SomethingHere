@@ -2,6 +2,7 @@
 #include <iostream>
 #include <random>
 #include "../ai/ai.hpp"
+#include "mapGenerator.h"
 using std::cout;
 
 // density out of 10'000 in both following cases
