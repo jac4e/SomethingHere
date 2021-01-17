@@ -6,6 +6,7 @@
 #include <GL/freeglut_ext.h>
 
 #include "draw_screen.h"
+#include "textures.h"
 
 static char *test_argv = "test_name";
 static int test_argc = 1;
@@ -17,29 +18,35 @@ static int color_palette[5] = {
 	0x859900,
 };
 
-enum cell_types
+int init_gl(struct display_data *dat)
 {
-	NOTHING,
-	AGENT,
-	WALL,
-};
+	int i;
 
-int init_gl()
-{
+	GLuint *textures;
+	GLsizei n;
+
+	int tex_res[2] = {1024, 1024};
+	const void **texture_data;
+
+	textures = dat->textures;
+	n = dat->num_textures;
+
+	texture_data = malloc(sizeof *texture_data * n);
+	texture_data[0] = &agent_bytedata.pixel_data;
+	texture_data[1] = &wall_bytedata.pixel_data;
+	texture_data[2] = &energy_cell_bytedata.pixel_data;
+
 	glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
 
-	return 0;
-}
+	// generates set of new texture names
+	glGenTextures(n, textures);
 
-// set color before calling, so repeated calls
-// dont require repeated glColor calls
-// must be called with an active glBegin(GL_QUADS);
-int draw_box(float pos[2], float side_len[2])
-{
-	glVertex2f(pos[0], pos[1]);
-	glVertex2f(pos[0] + side_len[0], pos[1]);
-	glVertex2f(pos[0] + side_len[0], pos[1] + side_len[1]);
-	glVertex2f(pos[0], pos[1] + side_len[1]);
+	// read textures
+	for(i = 0; i < n; ++i){
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, tex_res[0], tex_res[1], 0, 
+			GL_RGBA, GL_UNSIGNED_BYTE, texture_data[i]);
+		glBindTexture(GL_TEXTURE_2D, textures[i]);
+	}
 
 	return 0;
 }
@@ -59,6 +66,45 @@ int compute_fracs(struct display_data *dat, float gap_pro)
 	return 0;
 }
 
+// does no texture loading init_gl() does texture loading
+int init_dsp_data(struct display_data *dat, int dims[2])
+{
+	dat->grid_size[0] = dims[0];
+	dat->grid_size[1] = dims[1];
+
+	dat->types = malloc(sizeof *dat->types * (dims[0] * dims[1]));
+
+	compute_fracs(dat, 0.1);
+
+	return 0;
+}
+
+// set color before calling, so repeated calls
+// dont require repeated glColor calls
+// must be called with an active glBegin(GL_QUADS);
+int draw_box(float pos[2], float side_len[2])
+{
+	glVertex2f(pos[0], pos[1]);
+	glVertex2f(pos[0] + side_len[0], pos[1]);
+	glVertex2f(pos[0] + side_len[0], pos[1] + side_len[1]);
+	glVertex2f(pos[0], pos[1] + side_len[1]);
+
+	return 0;
+}
+
+int draw_texture(float pos[2], float side_len[2], GLuint texture)
+{
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texture);
+
+	glVertex2f(pos[0], pos[1]);
+	glVertex2f(pos[0] + side_len[0], pos[1]);
+	glVertex2f(pos[0] + side_len[0], pos[1] + side_len[1]);
+	glVertex2f(pos[0], pos[1] + side_len[1]);
+
+	return 0;
+}
+
 int set_color(struct display_data *dat, int x, int y)
 {
 	float r, g, b;
@@ -67,19 +113,19 @@ int set_color(struct display_data *dat, int x, int y)
 	type = dat->types[y * dat->grid_size[0] + x];
 
 	switch(type){
-	case NOTHING:
+	case CT_NOTHING:
 		r = (unsigned char)(color_palette[0] >> 16) / (float)UCHAR_MAX;
 		g = (unsigned char)(color_palette[0] >> 8) / (float)UCHAR_MAX;
 		b = (unsigned char)(color_palette[0] >> 0) / (float)UCHAR_MAX;
 		glColor3f(r, g, b);
 		break;
-	case AGENT:
+	case CT_AGENT:
 		r = (unsigned char)(color_palette[1] >> 16) / (float)UCHAR_MAX;
 		g = (unsigned char)(color_palette[1] >> 8) / (float)UCHAR_MAX;
 		b = (unsigned char)(color_palette[1] >> 0) / (float)UCHAR_MAX;
 		glColor3f(r, g, b);
 		break;
-	case WALL:
+	case CT_WALL:
 		r = (unsigned char)(color_palette[2] >> 16) / (float)UCHAR_MAX;
 		g = (unsigned char)(color_palette[2] >> 8) / (float)UCHAR_MAX;
 		b = (unsigned char)(color_palette[2] >> 0) / (float)UCHAR_MAX;
@@ -117,7 +163,23 @@ int tile_boxes(struct display_data *dat)
 	for(i = 0; i < dat->grid_size[1]; ++i){
 		for(j = 0; j < dat->grid_size[0]; ++j){
 			set_color(dat, i, j);
-			draw_box(pos, dat->box_fracs);
+			switch(dat->types[i * dat->grid_size[0] + j]){
+				case CT_NOTHING:
+					draw_box(pos, dat->box_fracs);
+					break;
+				case CT_AGENT:
+					draw_texture(pos, dat->box_fracs, CT_AGENT);
+					break;
+				case CT_WALL:
+					draw_texture(pos, dat->box_fracs, CT_WALL);
+					// pos resizing can be done here so fills
+					// entire cell
+					break;
+				default:
+					// assume energy cell
+					draw_texture(pos, dat->box_fracs, 
+							CT_ENERGYCELL);
+			}
 			pos[0] += inc[0];
 		}
 		pos[1] += inc[1];
@@ -161,7 +223,7 @@ int init_screen(struct display_data *dat)
 
 	// create window and GL context
 	glutFullScreen();
-	init_gl();
+	init_gl(dat);
 
 	// set glut callbacks
 	glutDisplayFuncUcall(&display_callback, dat);
