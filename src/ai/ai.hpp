@@ -16,5 +16,5 @@ class Agent{
         void setProperties(float,float,int,int,int);
 };
 
-std::vector<Agent> generateAgent(int);
+std::vector<Agent> generateAgent(int,int);
 

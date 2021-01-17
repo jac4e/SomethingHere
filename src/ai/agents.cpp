@@ -11,6 +11,14 @@ void Agent::setPos(int x, int y) {
     return;
 };
 
+void Agent::setProperties(float a, float b, int c, int d, int e){
+    agg = a;
+    picky = b;
+    stge = c;
+    str = d;
+    agi = e;
+}
+
 std::vector<Agent> generateAgents(int amt, int skillMax){
     std::vector<Agent> agentList(amt);
 
