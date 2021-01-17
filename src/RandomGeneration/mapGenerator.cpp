@@ -7,7 +7,6 @@ using std::cout;
 // density out of 10'000 in both following cases
 int dWall;
 int dEnergy;
-int nActors;
 int xSize;
 int ySize;
 int minEnergy; // <= 0
@@ -240,7 +239,7 @@ void placeActors(std::vector<Agent> agent)
 	}
 }
 
-void generateMap(int wallDensity, int energyDensity, int numberActors, int sizeX, int sizeY, int energyMin, int energyMax, std::vector<Agent> agents)
+void generateMap(int wallDensity, int energyDensity, int sizeX, int sizeY, int energyMin, int energyMax, std::vector<Agent> agents)
 {
 	// mersenne() = random number
 
@@ -254,7 +253,6 @@ void generateMap(int wallDensity, int energyDensity, int numberActors, int sizeX
 
 	dWall = wallDensity;
 	dEnergy = energyDensity;
-	nActors = numberActors;
 	xSize = sizeX;
 	ySize = sizeY;
 	minEnergy = energyMin; // <= 0
