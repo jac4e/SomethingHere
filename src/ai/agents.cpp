@@ -1,27 +1,42 @@
-#include "../worldGeneration/worldGenerator.h"
+#include "../world/map.h"
 #include "ai.h"
 
 Agent::Agent(){};
+
+
+Agent::Agent(){
+    moveWeights = { 0,0,0,0 };
+    stge = 0;
+    str = 0;
+    litness = 0;
+    radius = 0;
+    energyUsed = 0;
+    energyStorage = 0;
+    deathTime = 0;
+    maxEnergy = 0;
+    selectionProbability = 0;
+};
 
 void Agent::setPosition(int x, int y) {
     pos = {x, y};
     return;
 };
 
-void Agent::setProperties(std::vector<float> w, float a, float b) {
+void Agent::setProperties(std::vector<float> w, float a, float b, int r) {
     moveWeights = w;
     stge = a;
+    deathTime = 0;
     str = b;
-    radius = 2;
+    radius = r;
     maxEnergy = 100 * stge;
-    energyStorage = maxEnergy/2;
+    energyStorage = maxEnergy / 2;
 }
 
 void Agent::stealEnergy(int amt){
     energyStorage -= amt;
 }
 
-void Agent::kill(int rowsize){
+void Agent::kill() {
     // kill agent when energy runs out or too much energy consumed
     int index = (pos.y * rowsize) + pos.x;
     map[index] = 0;
@@ -44,7 +59,7 @@ std::vector<Agent> generateAgents(int amt, int skillMax) {
         float str = skillMax - (float)a;
 
         // Set the properties based on the randomly generated values
-        population[i].setProperties(moveWeights, stge, str);
+        population[i].setProperties(moveWeights, stge, str, 4);
     }
     return population;
 }

@@ -1,4 +1,4 @@
-#include "../worldGeneration/world.h"
+#include "../world/map.h"
 #include "ai.h"
 
 bool operator==(const Position &left, const Position &right) {

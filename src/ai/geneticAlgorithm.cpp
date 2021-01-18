@@ -48,7 +48,7 @@ void mutate(Agent &agent) {
     float aShift = (arand * (aMax[0] + aMax[1]) - aMax[0]) / 10;
     float stge = agent.stge + aShift;
     float str = agent.str - aShift;
-    agent.setProperties(moveWeights, stge, str);
+    agent.setProperties(moveWeights, stge, str, agent.radius);
 }
 
 Agent breed(Agent &parentA, Agent &parentB, float w) {
