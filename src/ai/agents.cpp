@@ -1,5 +1,5 @@
-#include "ai.hpp"
-#include "../RandomGeneration/mapGenerator.h"
+#include "../worldGeneration/worldGenerator.h"
+#include "ai.h"
 
 Agent::Agent(){};
 

@@ -1,5 +1,5 @@
-#include "../RandomGeneration/mapGenerator.h"
-#include "ai.hpp"
+#include "../worldGeneration/world.h"
+#include "ai.h"
 
 bool operator==(const Position &left, const Position &right) {
     return left.x == right.x && left.y == right.y;

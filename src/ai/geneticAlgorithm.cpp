@@ -1,4 +1,8 @@
-#include "ai.hpp"
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+#include "ai.h"
 
 void assignProbabilities(std::vector<Agent> &population) {
     // First sum all fitness values
