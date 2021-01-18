@@ -3,6 +3,7 @@
 
 Agent::Agent(){};
 
+extern Map map;
 
 Agent::Agent(){
     moveWeights = { 0,0,0,0 };

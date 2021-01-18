@@ -1,9 +1,7 @@
 #include "../world/map.h"
 #include "ai.h"
 
-bool operator==(const Position &left, const Position &right) {
-    return left.x == right.x && left.y == right.y;
-}
+extern Map map;
 
 // Function that gets Agent object from position data
 Agent &getAgent(std::vector<Agent> &population, Position pos) {
