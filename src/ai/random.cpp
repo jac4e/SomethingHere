@@ -3,6 +3,6 @@
 
 #include "ai.h"
 
-float nRand(){
+float nRand() {
     return (float)rand() / (float)RAND_MAX;
 }

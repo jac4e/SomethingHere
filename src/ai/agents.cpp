@@ -1,9 +1,10 @@
 #include "../world/map.h"
 #include "ai.h"
 
-Agent::Agent(){};
 
 extern Map map;
+extern int time;
+extern int deaths;
 
 Agent::Agent(){
     moveWeights = { 0,0,0,0 };
@@ -33,14 +34,42 @@ void Agent::setProperties(std::vector<float> w, float a, float b, int r) {
     energyStorage = maxEnergy / 2;
 }
 
-void Agent::stealEnergy(int amt){
-    energyStorage -= amt;
+int Agent::stealEnergy(int amt) {
+    if (energyStorage > amt) {
+        energyStorage -= amt;
+        return amt;
+    } else {
+        int taken = energyStorage;
+        energyStorage = 0;
+        return taken;
+    }
+}
+int Agent::useEnergy(int amt){
+    // returns 1 when energy is used
+    // returns 0 when energy demand exceeds storage
+    if (energyStorage < amt) {
+        energyUsed += energyStorage;
+        energyStorage = 0;
+        return 0;
+    } else {
+        energyStorage -= amt;
+        energyUsed += amt;
+    }
 }
 
 void Agent::kill() {
     // kill agent when energy runs out or too much energy consumed
-    int index = (pos.y * rowsize) + pos.x;
-    map[index] = 0;
+    ++deaths;
+    deathTime = time;
+    map.setCell(pos,0);
+}
+
+void Agent::reset() {
+    litness = 0;
+    energyUsed = 0;
+    energyStorage = maxEnergy / 2;
+    deathTime = 0;
+    selectionProbability = 0;
 }
 
 std::vector<Agent> generateAgents(int amt, int skillMax) {
@@ -48,7 +77,7 @@ std::vector<Agent> generateAgents(int amt, int skillMax) {
 
     for (int i = 0; i < amt; i++) {
         // Generate floats between 0 and 1 by calculating the normal of rand()
-        std::vector<float> moveWeights = {nRand(),nRand(),nRand(),nRand()};
+        std::vector<float> moveWeights = {nRand(), nRand(), nRand(), nRand()};
 
         // Generate two numbers that sum to skillMax by randomly generating two cut-off points
         int a;

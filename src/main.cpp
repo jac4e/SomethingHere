@@ -17,6 +17,8 @@ std::mt19937 mersenne(rd());
 
 Map map(100, 100, 0, 1000, 0, 10);
 
+int time = 0;
+int deaths = 0;
 int main() {
     // struct display_data dat;
     // struct tick_vars tick;

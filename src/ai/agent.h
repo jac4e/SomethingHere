@@ -15,6 +15,7 @@ class Agent {
     int maxEnergy;
     float selectionProbability;
     Agent();
+    void reset();
     void setPosition(int x, int y);
     void setProperties(std::vector<float> w, float stge, float str, int r);
     int stealEnergy(int amt);

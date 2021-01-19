@@ -5,13 +5,14 @@
 #include "ai.h"
 
 void assignProbabilities(std::vector<Agent> &population) {
+    // Fitness should be determined
     // First sum all fitness values
-    int fitnessSum;
+    int fitnessSum = 0;
     for (int i = 0; i < population.size(); i++) {
         fitnessSum += population[i].energyUsed;
     }
     // Then calculate probability for each agent
-    float probSum;
+    float probSum = 0;
     for (int i = 0; i < population.size(); i++) {
         probSum += (float)population[i].energyUsed / (float)fitnessSum;
         population[i].selectionProbability = probSum;
@@ -23,7 +24,7 @@ int selectParent(std::vector<Agent> &population) {
     float r = (float)rand() / (float)RAND_MAX;
     for (int i = 0; i < population.size(); i++) {
         // printf("size: %d", population.size());
-        if (i == population.size() - 1 || (r > population[i].selectionProbability && r < population[i + 1].selectionProbability)) {
+        if (r < population[i].selectionProbability) {
             return i;
         }
     }
@@ -39,7 +40,7 @@ void mutate(Agent &agent) {
         moveWeights.push_back(agent.moveWeights[i] + shift);
     }
 
-    // Mutate Physical
+    // Mutate Physical Attributes
     // Calculate the max cutoff shift
     float aMax[2] = {agent.stge, agent.str};
     // Calculate normalized random numbers
@@ -65,9 +66,14 @@ Agent breed(Agent &parentA, Agent &parentB, float w) {
     child.setProperties(
         moveWeights,
         parentA.stge * w + parentB.stge * (1 - w),
-        parentA.str * w + parentB.str * (1 - w));
+        parentA.str * w + parentB.str * (1 - w),
+        parentA.radius);
     mutate(child);
     return child;
+}
+
+void calculateLitness(Agent &agent) {
+    agent.litness = (float)agent.deathTime;
 }
 
 void reproducePopulation(std::vector<Agent> &population) {
@@ -92,16 +98,18 @@ void reproducePopulation(std::vector<Agent> &population) {
     // Clear population
     population.clear();
     // printf("matingPop: %d\n",matingPopSize);
-    // Reassign probabilities for mating population
-    assignProbabilities(matingPop);
 
     // Breed mating population until matingPop is empty
     while (matingPop.size() > 0) {
+        // Reassign probabilities for mating population
+        assignProbabilities(matingPop);
         // Select parents and remove them from matingPop
-        int a = selectParent(matingPop);
+        //int a = selectParent(matingPop);
+        int a = rand() % matingPop.size();
         Agent parentA = matingPop[a];
         matingPop.erase(matingPop.begin() + a);
-        int b = selectParent(matingPop);
+        //int b = selectParent(matingPop);
+        int b = rand() % matingPop.size();
         Agent parentB = matingPop[b];
         matingPop.erase(matingPop.begin() + b);
 
@@ -109,9 +117,14 @@ void reproducePopulation(std::vector<Agent> &population) {
         float w = (float)rand() / (float)RAND_MAX;
         population.push_back(breed(parentA, parentB, w));
         population.push_back(breed(parentB, parentA, 1 - w));
+        w = (float)rand() / (float)RAND_MAX;
+        population.push_back(breed(parentA, parentB, w));
+        population.push_back(breed(parentB, parentA, 1 - w));
 
         // Add parents back to population
-        population.push_back(parentA);
-        population.push_back(parentB);
+        //parentA.reset();
+        //parentB.reset();
+        //population.push_back(parentA);
+        //population.push_back(parentB);
     }
 }

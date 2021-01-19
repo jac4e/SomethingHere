@@ -12,7 +12,6 @@ int selectParent(std::vector<Agent> &population);
 void mutate(Agent &agent);
 Agent breed(Agent &parentA, Agent &parentB, float crossover);
 void reproducePopulation(std::vector<Agent> &population);
-
+void calculateLitness(Agent& agent);
 Agent &getAgent(std::vector<Agent> &population, Position pos);
-std::vector<char> getAdjacent(char *map, int rowsize, Agent &agent, int radius);
-void control(Agent &agent);
+void control(Agent &agent, std::vector<Agent> &population);
