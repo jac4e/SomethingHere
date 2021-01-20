@@ -6,9 +6,11 @@
 
 // Encapsulate map stuff
 class Map {
-   private:
-    unsigned char *map;
    public:
+    unsigned char *map;
+    int dimension;
+    int maxLength;
+    Map();
     int width;
     int height;
     int wallDensity;
@@ -19,6 +21,12 @@ class Map {
     unsigned char getCell(Position position);
     void setCell(Position position, unsigned char type);
     void clear();
+    void generate(int dim, int mEmpty, int mLen, int eDen, int eMin, int eMax);
+    void placeEnergy();
+    void generateWalls();
+
+    void generateWallsImproved();
+
     void print();
     void randomize();
     void placeAgents(std::vector<Agent> &population);

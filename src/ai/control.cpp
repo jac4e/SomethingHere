@@ -6,12 +6,14 @@
 extern Map map;
 
 // Function that gets Agent object from position data
-Agent &getAgent(std::vector<Agent> &population, Position pos) {
+int getAgent(std::vector<Agent> &population, Position pos, std::vector<unsigned char> &adjacent) {
     for (int i = 0; i < population.size(); i++) {
         if (pos == population[i].pos) {
-            return population[i];
+            return i;
         }
     }
+    map.print();
+    printMap(adjacent);
 }
 
 void move(Agent &agent, Position target) {
@@ -24,13 +26,14 @@ void move(Agent &agent, Position target) {
         }
     }
 
-void control(Agent &agent, std::vector<Agent> &population) {
+void control(Agent &agent, std::vector<Agent> &population, int i) {
     if (agent.deathTime > 0) {
         return;
     } else if (agent.energyStorage <= 0) {
-        agent.kill();
+        agent.kill(i);
         return;
-}
+    }
+    else if (agent.energyStorage >= agent.maxEnergy);
 
     // should loop through all agents in here or make population global
 
@@ -145,9 +148,12 @@ void control(Agent &agent, std::vector<Agent> &population) {
     } else if (targetValue == 1) {
             // Agent
             // do not move and steal it's energy
-        Agent &targetAgent = getAgent(population, targetPos);
+        int agent2 = getAgent(population, targetPos, adjacent);
         if (agent.useEnergy(10)) {
-            agent.energyStorage += targetAgent.stealEnergy(agent.str * 10);
+            int energyStolen = population[i].stealEnergy(agent.str * 20);
+            agent.energyConsumed += energyStolen;
+            agent.energyStorage += energyStolen;
+            //printf("agent %llu stole from agent %llu\n", agent.id, population[agent2].id);
         }
 
         // These should not be hard coded
@@ -158,6 +164,7 @@ void control(Agent &agent, std::vector<Agent> &population) {
     } else {
             // energy
         if (agent.useEnergy(10)) {
+            agent.energyConsumed += (targetValue - 154);
             agent.energyStorage += (targetValue - 154);
             move(agent, targetPos);
         }

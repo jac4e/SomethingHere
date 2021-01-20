@@ -59,7 +59,7 @@ int init_dsp_data(struct display_data *dat, int dims[2]) {
     dat->grid_size[0] = dims[0];
     dat->grid_size[1] = dims[1];
 
-    dat->types = malloc(sizeof *dat->types * (dims[0] * dims[1]));
+    //dat->types = malloc(sizeof *dat->types * (dims[0] * dims[1]));
 
     compute_fracs(dat, 0.1);
 

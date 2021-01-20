@@ -1,29 +1,50 @@
+#include "map.h"
+
 #include <stdio.h>
 
 #include <iostream>
-#include <stdexcept>
 #include <random>
+#include <stdexcept>
 
 #include "../ai/ai.h"
 #include "position.h"
-#include "map.h"
 
 extern std::mt19937 mersenne;
 
-Map::Map(int w, int h, int wDen, int eDen, int eMin, int eMax) {
-    width = w;
-    height = h;
-    wallDensity = wDen;
+Map::Map(){
+    
+}
+
+void Map::generate(int dim, int mEmpty, int mLen, int eDen, int eMin, int eMax) {
+    // old variables left in for compatibility
+    width = dim;
+    height = dim;
+    wallDensity = 100;
+
+    // New variables
+    dimension = dim;
+    maxLength = mLen;
     energyDensity = eDen;
     energyMin = eMin;
     energyMax = eMax;
 
-    map = new unsigned char[height * width]{};
-
-    randomize();
+    map = new unsigned char[dim * dim]{};
+    generateWalls();
+    placeEnergy();
 }
 
-unsigned char *&Map::getMap(){
+void Map::generateWallsImproved(){
+    // Uses a random walking algorithm to randomly generate maps that have walls
+    // Idea found on https://www.freecodecamp.org/news/how-to-make-your-own-procedural-dungeon-map-generator-using-the-random-walk-algorithm-e0085c8aa9a/
+
+    // Values for wall and empty space will be flipped for easier coding of algorithm
+    int startX = rand() % dimension;
+
+
+
+}
+
+unsigned char *&Map::getMap() {
     return map;
 }
 
@@ -49,12 +70,19 @@ void Map::setCell(Position position, unsigned char type) {
 void Map::clear() {
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            map[y * width, x] = 0;
+            if (map[y * width + x] != 2) {
+                map[y * width + x] = 0;
+            }
         }
     }
 }
 
 void Map::randomize() {
+    clear();
+    placeEnergy();
+}
+
+void Map::generateWalls() {
     // Generate walls
     // shapes: | L + [] () .
     /*
@@ -71,7 +99,7 @@ void Map::randomize() {
 	*/
 
     // 2 = wall
-    printf("Generating map..\n");
+    //printf("Generating map..\n");
     auto placeWall = [&](int y, int x) {
         if (x >= 0 && x < width && y >= 0 && y < height) {
             bool noNearbyWall = true;
@@ -108,18 +136,21 @@ void Map::randomize() {
                     map[(yMin + j) * width + (xMin + i)] = 2;
     };
 
-    printf("Placing walls..\n");
+    //printf("Generating walls..\n");
+    int count = 0;
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
+            printf("%.0f%%\n", (float)count / (float)(width * height) * 100);
+            ++count;
             if (mersenne() % 10000 < wallDensity) {
                 unsigned char currentShape = mersenne();
-                if (currentShape <= 51)  //single wall
-                {
+                if (currentShape <= 51) {
+                    //single wall
                     placeWall(y, x);
                     commitWall(x, 1, y, 1);
                     //cout << ".\n";
-                } else if (currentShape <= 211)  // line
-                {
+                } else if (currentShape <= 211) {
+                    // line
                     placeWall(y, x);
                     bool horizontal = currentShape % 2 == 0;
                     unsigned char length = 76 % 4;
@@ -204,7 +235,10 @@ void Map::randomize() {
             }
         }
     }
-    printf("Placing energy..\n");
+}
+
+void Map::placeEnergy() {
+    //printf("Placing energy..\n");
     for (int i = 0; i < width * height; ++i)
         if (mersenne() % 10000 < energyDensity && map[i] != 2) {
             map[i] = 154 + mersenne() % (energyMax - energyMin + 1) + energyMin;
@@ -228,12 +262,13 @@ std::vector<unsigned char> Map::getCellRadius(Position position, int radius) {
     std::vector<unsigned char> adjacent;
     for (int i = 0; i < radius * 2 + 1; i++) {
         for (int j = 0; j < radius * 2 + 1; j++) {
-            Position pos = { position.x + j - radius , position.y + i - radius };
+            Position pos = {position.x + j - radius, position.y + i - radius};
             adjacent.push_back(getCell(pos));
         }
     }
     return adjacent;
 }
+
 void Map::print() {
     std::cout << "+-";
     for (int i = 0; i < width; ++i)
@@ -242,22 +277,52 @@ void Map::print() {
     for (int y = 0; y < height; ++y) {
         std::cout << "| ";
         for (int x = 0; x < width; ++x) {
-            Position pos = { x, y };
+            Position pos = {x, y};
             if (getCell(pos) == 0) {
                 // Empty
-                std::cout << " _ ";
-            }
-            else if (getCell(pos) == 1) {
-                // Agent 
+                std::cout << "   ";
+            } else if (getCell(pos) == 1) {
+                // Agent
                 std::cout << " A ";
-            }
-            else if (getCell(pos) == 2) {
+            } else if (getCell(pos) == 2) {
                 // Wall
                 std::cout << " W ";
-            }
-            else {
+            } else {
                 // energy
-                std::cout << " E "; 
+                std::cout << " E ";
+                // map.getCell(pos) - 154;
+            }
+        }
+        std::cout << "|\n";
+    }
+    std::cout << "+-";
+    for (int i = 0; i < width; ++i)
+        std::cout << "---";
+    std::cout << "+\n";
+}
+
+void printMap(std::vector<unsigned char> map) {
+    int width = 9;
+    int height = 9;
+    std::cout << "+-";
+    for (int i = 0; i < width; ++i)
+        std::cout << "---";
+    std::cout << "+\n";
+    for (int y = 0; y < height; ++y) {
+        std::cout << "| ";
+        for (int x = 0; x < width; ++x) {
+            if (map[y * width + x] == 0) {
+                // Empty
+                std::cout << "   ";
+            } else if (map[y * width + x] == 1) {
+                // Agent
+                std::cout << " A ";
+            } else if (map[y * width + x] == 2) {
+                // Wall
+                std::cout << " W ";
+            } else {
+                // energy
+                std::cout << " E ";
                 // map.getCell(pos) - 154;
             }
         }

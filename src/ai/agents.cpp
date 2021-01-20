@@ -6,16 +6,22 @@ extern Map map;
 extern int time;
 extern int deaths;
 
-Agent::Agent(){
-    moveWeights = { 0,0,0,0 };
-    stge = 0;
-    str = 0;
+unsigned long long int counter;
+
+Agent::Agent(std::vector<float> w, float a, float b){
+    id = counter;
+    ++counter;
+    moveWeights = w;
+    stge = a;
+    str = b;
     litness = 0;
-    radius = 0;
+    radius = 4;
     energyUsed = 0;
-    energyStorage = 0;
+    pos = { 0,0 };
+    energyConsumed = 0;
     deathTime = 0;
-    maxEnergy = 0;
+    maxEnergy = 100 * stge;
+    energyStorage = maxEnergy / 2;
     selectionProbability = 0;
 };
 
@@ -24,12 +30,10 @@ void Agent::setPosition(int x, int y) {
     return;
 };
 
-void Agent::setProperties(std::vector<float> w, float a, float b, int r) {
+void Agent::setProperties(std::vector<float> w, float a, float b) {
     moveWeights = w;
     stge = a;
-    deathTime = 0;
     str = b;
-    radius = r;
     maxEnergy = 100 * stge;
     energyStorage = maxEnergy / 2;
 }
@@ -57,23 +61,35 @@ int Agent::useEnergy(int amt){
     }
 }
 
-void Agent::kill() {
+std::vector<int> deathList;
+
+void Agent::kill(int i) {
     // kill agent when energy runs out or too much energy consumed
+    if (deaths >= 1000) {
+        int tst = 0;
+    }
+    if (std::find(deathList.begin(), deathList.end(), i) != deathList.end()) {
+        int tst = 0;
+    }
     ++deaths;
+    //printf("Agent %llu died, they were the %d death\n",id, deaths);
     deathTime = time;
     map.setCell(pos,0);
+    deathList.push_back(i);
 }
 
 void Agent::reset() {
     litness = 0;
+    pos = { 0,0 };
     energyUsed = 0;
+    energyConsumed = 0;
     energyStorage = maxEnergy / 2;
     deathTime = 0;
     selectionProbability = 0;
 }
 
 std::vector<Agent> generateAgents(int amt, int skillMax) {
-    std::vector<Agent> population(amt);
+    std::vector<Agent> population;
 
     for (int i = 0; i < amt; i++) {
         // Generate floats between 0 and 1 by calculating the normal of rand()
@@ -89,7 +105,8 @@ std::vector<Agent> generateAgents(int amt, int skillMax) {
         float str = skillMax - (float)a;
 
         // Set the properties based on the randomly generated values
-        population[i].setProperties(moveWeights, stge, str, 4);
+        Agent agent(moveWeights, stge, str);
+        population.push_back(agent);
     }
     return population;
 }
