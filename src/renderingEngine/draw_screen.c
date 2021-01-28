@@ -61,7 +61,7 @@ int init_dsp_data(struct display_data *dat, int dims[2]) {
 
     //dat->types = malloc(sizeof *dat->types * (dims[0] * dims[1]));
 
-    compute_fracs(dat, 0.1);
+    compute_fracs(dat, 0);
 
     return 0;
 }
@@ -214,7 +214,7 @@ int init_screen(struct display_data *dat) {
     glutReshapeFuncUcall(&reshape_callback, dat);
 
     // initial fracs
-    compute_fracs(dat, 0.1);
+    compute_fracs(dat, 0);
 
     return 0;
 }
