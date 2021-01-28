@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# Project specific
+build
+lib/*
+.vscode
+.vs
+CMakeSettings.json
+release
+openGL2d.pdf
+.gitignore
