@@ -23,8 +23,8 @@ void move(Agent &agent, Position target) {
         map.setCell(target, 1);
 
         agent.pos = target;
-        }
     }
+}
 
 void control(Agent &agent, std::vector<Agent> &population, int i) {
     if (agent.deathTime > 0) {
@@ -32,8 +32,10 @@ void control(Agent &agent, std::vector<Agent> &population, int i) {
     } else if (agent.energyStorage <= 0) {
         agent.kill(i);
         return;
-    }
-    else if (agent.energyStorage >= agent.maxEnergy);
+    } else if (agent.energyStorage >= agent.maxEnergy) {
+        //agent.kill(i);
+        //return;
+    };
 
     // should loop through all agents in here or make population global
 
@@ -63,6 +65,10 @@ void control(Agent &agent, std::vector<Agent> &population, int i) {
                 weightMap.push_back(energyValue * agent.moveWeights[3]);
                 break;
         }
+    }
+    // Apply vision weights to map
+    for (int i = 0; i < agent.radius * 2 + 1; i++) {
+        weightMap[i] = weightMap[i] * agent.visionWeights[i];
     }
 
     // Calculate directional weights
@@ -125,32 +131,32 @@ void control(Agent &agent, std::vector<Agent> &population, int i) {
     int targetValue = 0;
 
     if (index == 0) {
-            // Up
-            targetPos = {agent.pos.x, agent.pos.y + 1};
+        // Up
+        targetPos = {agent.pos.x, agent.pos.y + 1};
     } else if (index == 1) {
-            // Down
-            targetPos = {agent.pos.x, agent.pos.y - 1};
+        // Down
+        targetPos = {agent.pos.x, agent.pos.y - 1};
     } else if (index == 2) {
-            // Left
-            targetPos = {agent.pos.x - 1, agent.pos.y};
+        // Left
+        targetPos = {agent.pos.x - 1, agent.pos.y};
     } else if (index == 3) {
-            // Right
-            targetPos = {agent.pos.x + 1, agent.pos.y};
+        // Right
+        targetPos = {agent.pos.x + 1, agent.pos.y};
     } else {
-            targetValue = 0;
-            targetPos = {0, 0};
+        targetValue = 0;
+        targetPos = {0, 0};
     }
     targetValue = map.getCell(targetPos);
 
     if (targetValue == 0) {
-            // Empty
+        // Empty
         move(agent, targetPos);
     } else if (targetValue == 1) {
-            // Agent
-            // do not move and steal it's energy
+        // Agent
+        // do not move and steal it's energy
         int agent2 = getAgent(population, targetPos, adjacent);
         if (agent.useEnergy(10)) {
-            int energyStolen = population[i].stealEnergy(agent.str * 20);
+            int energyStolen = population[i].stealEnergy(20);
             agent.energyConsumed += energyStolen;
             agent.energyStorage += energyStolen;
             //printf("agent %llu stole from agent %llu\n", agent.id, population[agent2].id);
@@ -158,14 +164,14 @@ void control(Agent &agent, std::vector<Agent> &population, int i) {
 
         // These should not be hard coded
     } else if (targetValue == 2) {
-            // Wall
+        // Wall
         // do not move but consume slight amount of energy
         agent.useEnergy(5);
     } else {
-            // energy
+        // energy
         if (agent.useEnergy(10)) {
-            agent.energyConsumed += (targetValue - 154);
-            agent.energyStorage += (targetValue - 154);
+            agent.energyConsumed += (targetValue - 154) * 5;
+            agent.energyStorage += (targetValue - 154) * 5;
             move(agent, targetPos);
         }
     }

@@ -40,41 +40,39 @@ void mutate(Agent &agent) {
         float shift = (nRand() * (lMax + rMax) - lMax) / 10;
         moveWeights.push_back(agent.moveWeights[i] + shift);
     }
+    std::vector<float> visionWeights;
+    for (int i = 0; i < agent.visionWeights.size(); i++) {
+        float lMax = agent.visionWeights[i];
+        float rMax = 1 - agent.visionWeights[i];
+        float shift = (nRand() * (lMax + rMax) - lMax) / 10;
+        moveWeights.push_back(agent.visionWeights[i] + shift);
+    }
 
-    // Mutate Physical Attributes
-    // Calculate the max cutoff shift
-    float aMax[2] = {agent.stge, agent.str};
-    // Calculate normalized random numbers
-    float arand = (float)rand() / (float)RAND_MAX;
-    // Calculate cuttoff point shift value
-    float aShift = (arand * (aMax[0] + aMax[1]) - aMax[0]) / 10;
-    float stge = agent.stge + aShift;
-    float str = agent.str - aShift;
-    agent.setProperties(moveWeights, agent.stge, agent.str);
+    agent.setProperties(moveWeights, visionWeights);
 }
 
-std::vector<Agent> breed(Agent& parentA, Agent& parentB) {
+std::vector<Agent> breed(Agent &parentA, Agent &parentB) {
     // Breeds a child of two parents
     // Should modify this after first initial simulations if improper converging occurs
     std::vector<Agent> children;
-    std::vector<std::vector<float>> childWeights(2, std::vector<float>(4));
-    std::vector<std::vector<float>> childPhysical(2, std::vector<float>(2));
+    std::vector<std::vector<float>> childMoveWeights(2, std::vector<float>(4));
+    int dia = parentA.radius * 2 + 1;
+    std::vector<std::vector<float>> childVisionWeights(2, std::vector<float>(dia * dia));
     // randomly inheriet either parents moveWeights
     for (int i = 0; i < parentA.moveWeights.size(); i++) {
         int r = rand() % 2;
-        childWeights[0][i] = (r) ? parentA.moveWeights[i] : parentB.moveWeights[i];
-        childWeights[1][i] = (!r) ? parentA.moveWeights[i] : parentB.moveWeights[i];
+        childMoveWeights[0][i] = (r) ? parentA.moveWeights[i] : parentB.moveWeights[i];
+        childMoveWeights[1][i] = (!r) ? parentA.moveWeights[i] : parentB.moveWeights[i];
     }
 
-    int r = rand() % 2;
-    childPhysical[0][0] = (r) ? parentA.stge : parentB.stge;
-    childPhysical[1][0] = (!r) ? parentA.stge : parentB.stge;
-    childPhysical[0][1] = (r) ? parentA.str : parentB.str;
-    childPhysical[1][1] = (!r) ? parentA.str : parentB.str;
+    for (int i = 0; i < parentA.visionWeights.size(); i++) {
+        int r = rand() % 2;
+        childVisionWeights[0][i] = (r) ? parentA.visionWeights[i] : parentB.visionWeights[i];
+        childVisionWeights[1][i] = (!r) ? parentA.visionWeights[i] : parentB.visionWeights[i];
+    }
 
-
-    Agent childA(childWeights[0], childPhysical[0][0], childPhysical[0][1]);
-    Agent childB(childWeights[1], childPhysical[1][0], childPhysical[1][1]);
+    Agent childA(childMoveWeights[0], childVisionWeights[0], parentA.radius);
+    Agent childB(childMoveWeights[1], childVisionWeights[1], parentA.radius);
 
     //mutate(childA);
     //mutate(childB);
@@ -86,9 +84,6 @@ std::vector<Agent> breed(Agent& parentA, Agent& parentB) {
 
 void calculateLitness(Agent &agent) {
     agent.litness = agent.energyUsed;
-    if (isinf(agent.litness)) {
-        int test = 0;
-    }
 }
 
 void reproducePopulation(std::vector<Agent> &population) {
@@ -104,15 +99,14 @@ void reproducePopulation(std::vector<Agent> &population) {
     std::vector<float> pointersaver;
     for (int i = 0; i < matingPopSize; i++) {
         float pointer = start + pointerDist * i;
-        for (size_t j = 0; j < population.size(); j++)
-        {
+        for (size_t j = 0; j < population.size(); j++) {
             if (pointer < population[j].selectionProbability) {
                 pointersaver.push_back(pointer);
                 matingPop.push_back(population[j]);
                 population.erase(population.begin() + j);
                 break;
             }
-        } 
+        }
     }
     // On some occasions, one agents normalized fitness is so large, spanning the length of two or more pointers
     // This causes the mating population to be too small
@@ -152,8 +146,5 @@ void reproducePopulation(std::vector<Agent> &population) {
         parentB.reset();
         population.push_back(parentA);
         population.push_back(parentB);
-    }
-    if (population.size() != 1000) {
-        int test = 0;
     }
 }

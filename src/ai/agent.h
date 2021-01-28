@@ -6,8 +6,9 @@ class Agent {
     Position pos;
     // Movement weights [empty, agent, wall, energy]
     std::vector<float> moveWeights;
+    std::vector<float> visionWeights;
+
     unsigned long long int id;
-    float stge, str;
     int radius;
     int energyUsed;
     int energyConsumed;
@@ -16,10 +17,10 @@ class Agent {
     float litness;
     int maxEnergy;
     float selectionProbability;
-    Agent(std::vector<float> w, float a, float b);
+    Agent(std::vector<float> moveW, std::vector<float> visionW, int radius);
     void reset();
     void setPosition(int x, int y);
-    void setProperties(std::vector<float> w, float stge, float str);
+    void setProperties(std::vector<float> moveW, std::vector<float> visionW);
     int stealEnergy(int amt);
     int useEnergy(int amt);
     void kill(int i);
