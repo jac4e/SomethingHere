@@ -1,42 +1,49 @@
-#include "../RandomGeneration/mapGenerator.h"
-#include "ai.hpp"
+#include <stdio.h>
 
-bool operator==(const Position &left, const Position &right) {
-    return left.x == right.x && left.y == right.y;
-}
+#include "../world/map.h"
+#include "ai.h"
+
+extern Map map;
 
 // Function that gets Agent object from position data
-Agent &getAgent(std::vector<Agent> &population, Position pos) {
+int getAgent(std::vector<Agent> &population, Position pos, std::vector<unsigned char> &adjacent) {
     for (int i = 0; i < population.size(); i++) {
         if (pos == population[i].pos) {
-            return population[i];
+            return i;
         }
+    }
+    map.print();
+    printMap(adjacent);
+}
+
+void move(Agent &agent, Position target) {
+    // This should not be hard coded
+    if (agent.useEnergy(10)) {
+        map.setCell(agent.pos, 0);
+        map.setCell(target, 1);
+
+        agent.pos = target;
     }
 }
 
-// Some sort of search function that takes world array and creates a vector contains the adjacent tiles
-std::vector<int> getAdjacent(int rowsize, Agent &agent) {
-    // map[y*rowsize + x]
-    std::vector<int> adjacent;
-    for (int i = 0; i < agent.radius * 2 + 1; i++) {
-        for (int j = 0; j < agent.radius * 2 + 1; j++) {
-            int x = agent.pos.x + i - agent.radius;
-            int y = agent.pos.x + j - agent.radius;
-            int index = (y * rowsize) + x;
-            adjacent.push_back(map[index]);
-        }
-    }
-    return adjacent;
-}
+void control(Agent &agent, std::vector<Agent> &population, int i) {
+    if (agent.deathTime > 0) {
+        return;
+    } else if (agent.energyStorage <= 0) {
+        agent.kill(i);
+        return;
+    } else if (agent.energyStorage >= agent.maxEnergy) {
+        //agent.kill(i);
+        //return;
+    };
 
-void control(Agent &agent, std::vector<Agent> &population, int rowsize) {
-    // check if energy is
+    // should loop through all agents in here or make population global
 
     // Get adjacent tiles
-    std::vector<int> adjacent = getAdjacent(rowsize, agent);
+    std::vector<unsigned char> adjacent = map.getCellRadius(agent.pos, agent.radius);
     std::vector<float> weightMap;
 
-    // convert adjacent tiles to weights
+    // convert adjacent tiles to weight map
     for (int i = 0; i < adjacent.size(); i++) {
         switch (adjacent[i]) {
             case 0:
@@ -54,134 +61,118 @@ void control(Agent &agent, std::vector<Agent> &population, int rowsize) {
 
             default:
                 // Energy
-                int energyValue = adjacent[i] - 155;
-                weightMap.push_back((adjacent[i] - 155) * agent.moveWeights[3]);
+                int energyValue = adjacent[i] - 154;
+                weightMap.push_back(energyValue * agent.moveWeights[3]);
                 break;
         }
     }
+    // Apply vision weights to map
+    for (int i = 0; i < agent.radius * 2 + 1; i++) {
+        weightMap[i] = weightMap[i] * agent.visionWeights[i];
+    }
 
     // Calculate directional weights
+    std::vector<float> directionWeights(4);
     // Up
-    float upWeight;
+    float upWeight = 0;
     for (int i = 0; i < agent.radius * 2 + 1; i++) {
         for (int j = 0; j < agent.radius; j++) {
-            int x = i - agent.radius;
-            int y = j - agent.radius;
-            int index = (y * (agent.radius * 2 + 1)) + x;
-            upWeight += weightMap[index];
+            upWeight += weightMap[j * (agent.radius * 2) + i];
         }
     }
+    directionWeights[0] = upWeight;
     // Down
-    float downWeight;
+    float downWeight = 0;
     for (int i = 0; i < agent.radius * 2 + 1; i++) {
         for (int j = agent.radius + 1; j < agent.radius * 2 + 1; j++) {
-            int x = i - agent.radius;
-            int y = j - agent.radius;
-            int index = (y * (agent.radius * 2 + 1)) + x;
-            downWeight += weightMap[index];
+            downWeight += weightMap[(j * (agent.radius * 2 + 1)) + i];
         }
     }
+    directionWeights[1] = downWeight;
     // Left
-    float leftWeight;
+    float leftWeight = 0;
     for (int i = 0; i < agent.radius; i++) {
         for (int j = 0; j < agent.radius * 2 + 1; j++) {
-            int x = i - agent.radius;
-            int y = j - agent.radius;
-            int index = (y * (agent.radius * 2 + 1)) + x;
-            leftWeight += weightMap[index];
+            leftWeight += weightMap[(j * (agent.radius * 2 + 1)) + i];
         }
     }
-
+    directionWeights[2] = leftWeight;
     // Right
-    float rightWeight;
+    float rightWeight = 0;
     for (int i = agent.radius + 1; i < agent.radius * 2 + 1; i++) {
         for (int j = 0; j < agent.radius * 2 + 1; j++) {
-            int x = i - agent.radius;
-            int y = j - agent.radius;
-            int index = (y * (agent.radius * 2 + 1)) + x;
-            rightWeight += weightMap[index];
+            rightWeight += weightMap[(j * (agent.radius * 2 + 1)) + i];
         }
     }
+    directionWeights[3] = rightWeight;
 
     // Choose direction
     // normalize weights
     float weightSum = upWeight + downWeight + leftWeight + rightWeight;
-    std::vector<float> directionWeights = {upWeight / weightSum, downWeight / weightSum, leftWeight / weightSum, rightWeight / weightSum};
+    float probSum = 0;
+    for (int i = 0; i < directionWeights.size(); i++) {
+        probSum += directionWeights[i] / weightSum;
+        directionWeights[i] = probSum;
+    }
 
     float r = nRand();
-    int index;
+    int index = rand() % 4;
 
     for (int i = 0; i < directionWeights.size(); i++) {
         // printf("size: %d", population.size());
-        if (i == directionWeights.size() - 1 || (r > directionWeights[i] && r < directionWeights[i + 1])) {
+        if (r < directionWeights[i]) {
             index = i;
+            break;
         }
     }
 
     // Check what is in that tile
     Position targetPos;
-    int targetValue;
+    int targetValue = 0;
 
-    switch (index) {
-        case 0:
-            // Up
-            targetPos = {agent.pos.x, agent.pos.y + 1};
-            int targetIndex = (targetPos.y * rowsize) + targetPos.x;
-            targetValue = map[targetIndex];
-            break;
-        case 1:
-            // Down
-            targetPos = {agent.pos.x, agent.pos.y - 1};
-            int targetIndex = (targetPos.y * rowsize) + targetPos.x;
-            targetValue = map[targetIndex];
-            break;
-        case 2:
-            // Left
-            targetPos = {agent.pos.x - 1, agent.pos.y};
-            int targetIndex = (targetPos.y * rowsize) + targetPos.x;
-            targetValue = map[targetIndex];
-            break;
-        case 3:
-            // Right
-            targetPos = {agent.pos.x + 1, agent.pos.y};
-            int targetIndex = (targetPos.y * rowsize) + targetPos.x;
-            targetValue = map[targetIndex];
-            break;
-        default:
-            targetValue = 0;
-            targetPos = {0, 0};
-            break;
+    if (index == 0) {
+        // Up
+        targetPos = {agent.pos.x, agent.pos.y + 1};
+    } else if (index == 1) {
+        // Down
+        targetPos = {agent.pos.x, agent.pos.y - 1};
+    } else if (index == 2) {
+        // Left
+        targetPos = {agent.pos.x - 1, agent.pos.y};
+    } else if (index == 3) {
+        // Right
+        targetPos = {agent.pos.x + 1, agent.pos.y};
+    } else {
+        targetValue = 0;
+        targetPos = {0, 0};
     }
+    targetValue = map.getCell(targetPos);
 
-    switch (targetValue) {
-        case 0:
-            // Empty
-            int oldIndex = (agent.pos.y * rowsize) + agent.pos.x;
-            int newIndex = (targetPos.y * rowsize) + targetPos.x;
+    if (targetValue == 0) {
+        // Empty
+        move(agent, targetPos);
+    } else if (targetValue == 1) {
+        // Agent
+        // do not move and steal it's energy
+        int agent2 = getAgent(population, targetPos, adjacent);
+        if (agent.useEnergy(10)) {
+            int energyStolen = population[i].stealEnergy(20);
+            agent.energyConsumed += energyStolen;
+            agent.energyStorage += energyStolen;
+            //printf("agent %llu stole from agent %llu\n", agent.id, population[agent2].id);
+        }
 
-            map[oldIndex] = 0;
-            map[newIndex] = 1;
-
-            break;
-        case 1:
-            // Agent
-            // do not move and steal it's energy
-            Agent targetAgent = getAgent(population, targetPos);
-            targetAgent.stealEnergy(agent.str * 10);
-            break;
-        case 2:
-            // Wall
-            // do not move
-            break;
-
-        default:
-            // energy
-            int oldIndex = (agent.pos.y * rowsize) + agent.pos.x;
-            int newIndex = (targetPos.y * rowsize) + targetPos.x;
-            int energy = (map[newIndex] - 155);
-            agent.energyStorage += energy;
-            map[oldIndex] = 0;
-            map[newIndex] = 1;
-            break;
+        // These should not be hard coded
+    } else if (targetValue == 2) {
+        // Wall
+        // do not move but consume slight amount of energy
+        agent.useEnergy(5);
+    } else {
+        // energy
+        if (agent.useEnergy(10)) {
+            agent.energyConsumed += (targetValue - 154) * 5;
+            agent.energyStorage += (targetValue - 154) * 5;
+            move(agent, targetPos);
+        }
     }
 }

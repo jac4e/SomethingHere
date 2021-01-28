@@ -1,5 +1,8 @@
-#include "ai.hpp"
+#include <stdio.h>
+#include <stdlib.h>
 
-float nRand(){
+#include "ai.h"
+
+float nRand() {
     return (float)rand() / (float)RAND_MAX;
 }
