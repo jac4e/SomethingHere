@@ -1,8 +1,10 @@
+#include <algorithm>
+
 #include "../world/map.h"
 #include "ai.h"
 
 extern Map map;
-extern int time;
+extern int time_count;
 extern int deaths;
 
 unsigned long long int counter;
@@ -69,7 +71,7 @@ void Agent::kill(int i) {
     }
     ++deaths;
     //printf("Agent %llu died, they were the %d death\n",id, deaths);
-    deathTime = time;
+    deathTime = time_count;
     map.setCell(pos, 0);
     deathList.push_back(i);
 }

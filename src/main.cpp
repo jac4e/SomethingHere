@@ -20,7 +20,7 @@ Map map;
 std::vector<Agent> population;
 struct display_data dat;
 
-int time = 0;
+int time_count = 0;
 int deaths = 0;
 
 // Generation Statistics initialization
@@ -32,14 +32,14 @@ void init() {
     // Generate map
     int dim = 1;
     int amt = 1;
-    printf("Enter map dimension\n");
-    scanf_s("%d", &dim);
+    printf("Enter square map dimension: ");
+    scanf("%d", &dim);
     printf("Enter agent amt. ");
-    do {
+    while(amt % 4){
         printf("Must be multiple of 4: ");
-        scanf_s("%d", &amt);
+        scanf("%d", &amt);
         printf("\n");
-    } while (amt % 4);
+    }
     map.generate(dim, 100, 0, 500, 1, 20);
 
     // Generate agents and place in map
@@ -59,7 +59,7 @@ void update() {
     update_screen(&dat);
 
     // Update positions of each agent
-    for (int i = 0; i < population.size(); i++) {
+    for (int i = 0; i < (int)population.size(); i++) {
         control(population[i], population, i);
     }
 }
@@ -70,7 +70,7 @@ void reset() {
     float maxLit = 0;
     float sum = 0;
     float avg = 0;
-    for (int i = 0; i < population.size(); i++) {
+    for (int i = 0; i < (int)population.size(); i++) {
         calculateLitness(population[i]);
         sum += population[i].litness;
         if (population[i].litness > maxLit) {
@@ -84,7 +84,7 @@ void reset() {
     }
     printf("Generation %d - genHighest %.0f - 5 gen average %.0f - Overall %f.0\n", generation, maxLit, avg, highest);
     deaths = 0;
-    time = 0;
+    time_count = 0;
     reproducePopulation(population);
     ++generation;
     genHighest = 0;
@@ -100,10 +100,10 @@ int main() {
         // Per tick loop
         while (1) {
             update();
-            if (deaths >= population.size()) {
+            if (deaths >= (int)population.size()) {
                 break;
             }
-            ++time;
+            ++time_count;
         }
         reset();
     }
